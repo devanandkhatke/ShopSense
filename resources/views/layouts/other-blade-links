@@ -1,0 +1,28 @@
+  <!-- Wishlist -->
+                        <a href="{{ route('wishlist.index') }}" class="text-gray-700 hover:text-black">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.239-4.5-5-4.5-1.657 0-3.156.832-4 2.09C10.156 4.582 8.657 3.75 7 3.75c-2.761 0-5 2.015-5 4.5 0 7.25 10 12 10 12s10-4.75 10-12z" />
+                            </svg>
+                            <span class="sr-only">Wishlist</span>
+                        </a>
+
+
+                        <!-- Notifications -->
+                        <a href="{{ route('notifications.index') }}" class="text-gray-700 hover:text-black">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                class="w-6 h-6 inline">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span class="sr-only">Notifications</span>
+                        </a>
+
+
+<!-- add profile show button link -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg py-1 z-20 hidden group-hover:block">
+                            <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
+                            </form>
+                        </div>
