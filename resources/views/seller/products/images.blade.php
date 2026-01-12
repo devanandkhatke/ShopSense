@@ -4,32 +4,41 @@
 
 @section('content')
 
-<h1 class="text-2xl font-bold mb-6">Product Images</h1>
+<h1 class="text-2xl font-bold mb-6">
+    Images for: {{ $product->name }}
+</h1>
+
+@if(session('success'))
+<div class="bg-green-100 text-green-800 p-3 rounded mb-4">
+    {{ session('success') }}
+</div>
+@endif
 
 <form method="POST"
     action="{{ route('seller.products.images.store', $product) }}"
     enctype="multipart/form-data"
-    class="bg-white p-4 rounded shadow max-w-md">
+    class="bg-white p-4 rounded shadow mb-6">
     @csrf
 
     <input type="file" name="image" required>
-    <button class="mt-3 bg-black text-white px-4 py-2 rounded">
+    <button class="bg-black text-white px-4 py-2 rounded ml-2">
         Upload Image
     </button>
 </form>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     @foreach($product->images as $image)
-    <div class="bg-white p-2 rounded shadow">
+    <div class="border p-2 rounded">
         <img src="{{ asset('storage/'.$image->path) }}"
-            class="h-32 w-full object-cover rounded">
+            class="w-full h-32 object-cover rounded">
 
         <form method="POST"
-            action="{{ route('seller.products.images.destroy', $image) }}">
+            action="{{ route('seller.products.images.destroy', $image) }}"
+            class="mt-2">
             @csrf
             @method('DELETE')
 
-            <button class="text-red-600 text-sm mt-2">
+            <button class="text-red-600 text-sm">
                 Delete
             </button>
         </form>

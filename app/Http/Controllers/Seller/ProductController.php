@@ -4,20 +4,28 @@ namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\AttributeValue;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
+    /**
+     * Ensure product belongs to logged-in seller
+     */
     private function authorizeSeller(Product $product)
     {
-        abort_if($product->seller_id !== auth()->id(), 403);
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+
+        abort_if($product->seller_id !== $sellerProfileId, 403);
     }
 
     public function index()
     {
-        $products = Product::where('seller_id', auth()->id())
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+
+        $products = Product::where('seller_id', $sellerProfileId)
             ->latest()
             ->get();
 
@@ -26,7 +34,8 @@ class ProductController extends Controller
 
     public function create()
     {
-        $store = auth()->user()->sellerProfile->store;
+        $sellerProfile = auth()->user()->sellerProfile;
+        $store = $sellerProfile->store;
 
         if (!$store || !$store->is_completed) {
             abort(403, 'Complete store setup first.');
@@ -39,11 +48,10 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $store = auth()->user()->sellerProfile->store;
+        $sellerProfile = auth()->user()->sellerProfile;
+        $store = $sellerProfile->store;
 
-        if (!$store || !$store->is_completed) {
-            abort(403, 'Complete store setup first.');
-        }
+        abort_if(!$store || !$store->is_completed, 403, 'Complete store setup first.');
 
         $request->validate([
             'name'        => 'required|string|max:255',
@@ -54,7 +62,7 @@ class ProductController extends Controller
         ]);
 
         $product = Product::create([
-            'seller_id'   => auth()->id(),
+            'seller_id'   => $sellerProfile->id,
             'category_id' => $request->category_id,
             'name'        => $request->name,
             'slug'        => Str::slug($request->name) . '-' . uniqid(),
@@ -64,25 +72,19 @@ class ProductController extends Controller
             'status'      => 'pending',
         ]);
 
-        // Attach attribute values (if any)
-        if ($request->filled('attributes')) {
-            $product->attributeValues()
-                ->sync(array_values($request->attributes));
+        // ✅ SAFE ATTRIBUTE SYNC
+        $attributes = (array) $request->input('attributes', []);
+        $attributes = array_filter($attributes, fn($v) => !empty($v));
+
+        if (!empty($attributes)) {
+            $product->attributeValues()->sync(array_values($attributes));
         }
 
         return redirect()
-            ->route('seller.products.show', $product)
-            ->with('success', 'Product created successfully');
+            ->route('seller.products.index')
+            ->with('success', 'Product created successfully and sent for approval.');
     }
 
-    public function show(Product $product)
-    {
-        $this->authorizeSeller($product);
-
-        $product->load('images', 'attributeValues.attribute');
-
-        return view('seller.products.show', compact('product'));
-    }
 
     public function edit(Product $product)
     {
@@ -112,13 +114,23 @@ class ProductController extends Controller
             'description' => $request->description,
         ]);
 
-        if ($request->filled('attributes')) {
-            $product->attributeValues()
-                ->sync(array_values($request->attributes));
+        // ✅ SAFE ATTRIBUTE SYNC
+        $attributes = (array) $request->input('attributes', []);
+        $attributes = array_filter($attributes, fn($v) => !empty($v));
+
+        if (!empty($attributes)) {
+            $product->attributeValues()->sync(array_values($attributes));
         }
 
         return redirect()
-            ->route('seller.products.show', $product)
-            ->with('success', 'Product updated successfully');
+            ->route('seller.products.index')
+            ->with('success', 'Product updated successfully.');
+    }
+
+    public function show(Product $product)
+    {
+        $this->authorizeSeller($product);
+
+        return view('seller.products.show', compact('product'));
     }
 }

@@ -56,7 +56,7 @@ $isSellerActive = $sellerProfile && $sellerProfile->isActive();
 
     {{-- Store Profile --}}
     @if($isSellerActive)
-    <a href="#"
+    <a href="{{ route('seller.store.edit') }}"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800">
         Store Profile
     </a>

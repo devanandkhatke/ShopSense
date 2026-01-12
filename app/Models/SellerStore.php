@@ -16,6 +16,11 @@ class SellerStore extends Model
         'is_completed',
     ];
 
+    protected $casts = [
+        'is_completed' => 'boolean',
+        'default_tax_rate' => 'decimal:2',
+    ];
+
     public function sellerProfile()
     {
         return $this->belongsTo(SellerProfile::class);

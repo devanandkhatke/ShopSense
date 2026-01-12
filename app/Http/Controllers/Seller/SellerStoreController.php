@@ -3,44 +3,52 @@
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\SellerStore;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SellerStoreController extends Controller
 {
     public function edit()
     {
-        $profile = auth()->user()->sellerProfile;
+        $sellerProfile = auth()->user()->sellerProfile;
 
-        abort_if($profile->status !== 'active', 403);
-
-        $store = $profile->store ?? SellerStore::create([
-            'seller_profile_id' => $profile->id
+        $store = $sellerProfile->store ?? SellerStore::create([
+            'seller_profile_id' => $sellerProfile->id,
         ]);
 
-        return view('seller.store-setup', compact('store'));
+        return view('seller.store.edit', compact('store'));
     }
 
     public function update(Request $request)
     {
-        $request->validate([
-            'website' => 'nullable|url',
-            'whatsapp_number' => 'nullable|digits:10',
-            'shipping_method' => 'required',
-            'default_tax_rate' => 'required|numeric|min:0|max:28',
+        $sellerProfile = auth()->user()->sellerProfile;
+        $store = $sellerProfile->store;
+
+        $validated = $request->validate([
+            'store_logo'       => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'website'          => 'nullable|url|max:255',
+            'whatsapp_number'  => 'required|string|max:20',
+            'shipping_method'  => 'required|in:self_ship,platform_ship',
+            'default_tax_rate' => 'required|numeric|min:0|max:100',
         ]);
 
-        $store = auth()->user()->sellerProfile->store;
+        if ($request->hasFile('store_logo')) {
+            if ($store->store_logo) {
+                Storage::disk('public')->delete($store->store_logo);
+            }
 
-        $store->update([
-            'website' => $request->website,
-            'whatsapp_number' => $request->whatsapp_number,
-            'shipping_method' => $request->shipping_method,
-            'default_tax_rate' => $request->default_tax_rate,
-            'is_completed' => true,
-        ]);
+            $validated['store_logo'] = $request
+                ->file('store_logo')
+                ->store('store-logos', 'public');
+        }
 
-        return redirect()->route('seller.dashboard')
-            ->with('success', 'Store setup completed.');
+        $validated['is_completed'] = true;
+
+        $store->update($validated);
+
+        return redirect()
+            ->route('seller.dashboard')
+            ->with('success', 'Store profile completed successfully.');
     }
 }

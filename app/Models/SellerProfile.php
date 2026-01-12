@@ -37,6 +37,7 @@ class SellerProfile extends Model
     {
         return $this->hasOne(\App\Models\SellerStore::class);
     }
+    
 
     public function bankAccount()
     {

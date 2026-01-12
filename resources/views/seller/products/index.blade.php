@@ -30,9 +30,9 @@
             <td class="p-3 capitalize">{{ $product->status }}</td>
             <td class="p-3 space-x-3">
                 <a href="{{ route('seller.products.show', $product) }}"
-                    class="text-blue-600">View</a>
+                    class="text-blue-600 hover:underline">View</a>
                 <a href="{{ route('seller.products.edit', $product) }}"
-                    class="text-yellow-600">Edit</a>
+                    class="text-yellow-600 hover:underline">Edit</a>
             </td>
         </tr>
         @empty

@@ -11,7 +11,7 @@
     class="bg-white p-6 rounded shadow max-w-3xl">
     @csrf
 
-    {{-- PRODUCT BASIC INFO --}}
+    {{-- BASIC INFO --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <div>
@@ -31,7 +31,8 @@
                 required>
                 <option value="">-- Select Category --</option>
                 @foreach($categories as $category)
-                <option value="{{ $category->id }}">
+                <option value="{{ $category->id }}"
+                    @selected(old('category_id')==$category->id)>
                     {{ $category->name }}
                 </option>
                 @endforeach
@@ -56,9 +57,6 @@
                 value="{{ old('price') }}"
                 class="w-full border rounded p-2"
                 required>
-            <p class="text-xs text-gray-500 mt-1">
-                (Used if no variants are added)
-            </p>
         </div>
 
         <div>
@@ -75,9 +73,6 @@
     <hr class="my-6">
 
     <h2 class="text-lg font-semibold mb-3">Product Attributes</h2>
-    <p class="text-sm text-gray-500 mb-4">
-        These attributes will be used to create variants (size, color, etc.)
-    </p>
 
     @foreach($categories as $category)
     <div class="category-attributes space-y-4"
@@ -91,12 +86,12 @@
             </label>
 
             <select name="attributes[{{ $attribute->id }}]"
-                class="w-full border rounded p-2"
-                required>
+                class="attribute-select w-full border rounded p-2">
                 <option value="">-- Select {{ $attribute->name }} --</option>
 
                 @foreach($attribute->values as $value)
-                <option value="{{ $value->id }}">
+                <option value="{{ $value->id }}"
+                    @selected(old('attributes.'.$attribute->id) == $value->id)>
                     {{ $value->value }}
                 </option>
                 @endforeach
@@ -104,7 +99,7 @@
         </div>
         @empty
         <p class="text-sm text-gray-500">
-            No attributes assigned to this category.
+            No attributes for this category.
         </p>
         @endforelse
 
@@ -131,16 +126,19 @@
     const categorySelect = document.getElementById('category');
     const attributeBlocks = document.querySelectorAll('.category-attributes');
 
-    categorySelect.addEventListener('change', function() {
+    function toggleAttributes() {
         attributeBlocks.forEach(block => block.style.display = 'none');
 
-        if (this.value) {
+        if (categorySelect.value) {
             const active = document.querySelector(
-                `[data-category="${this.value}"]`
+                `[data-category="${categorySelect.value}"]`
             );
             if (active) active.style.display = 'block';
         }
-    });
+    }
+
+    categorySelect.addEventListener('change', toggleAttributes);
+    toggleAttributes();
 </script>
 
 @endsection

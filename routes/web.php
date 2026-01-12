@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
@@ -112,7 +113,6 @@ Route::middleware(['auth', 'role:super-admin'])
 
 use App\Http\Controllers\Seller\DashboardController as SellerDashboard;
 use App\Http\Controllers\Seller\ProductController;
-use App\Http\Controllers\Seller\ProductImageController;
 use App\Http\Controllers\Seller\ProductVariantController;
 use App\Http\Controllers\Seller\ProfileController as SellerProfileController;
 use App\Http\Controllers\Seller\SellerKycController;
@@ -143,7 +143,7 @@ Route::middleware(['auth', 'role:seller'])
 
             Route::get('/payouts', [SellerPayoutController::class, 'index'])->name('payout.index');
             Route::post('/payouts', [SellerPayoutController::class, 'request'])->name('payout.request');
-
+            Route::resource('products', ProductController::class);
             Route::prefix('products')->name('products.')->group(function () {
 
                 Route::get('/', [ProductController::class, 'index'])->name('index');
@@ -151,13 +151,39 @@ Route::middleware(['auth', 'role:seller'])
                 Route::post('/', [ProductController::class, 'store'])->name('store');
                 Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
                 Route::put('/{product}', [ProductController::class, 'update'])->name('update');
-                Route::post('/{product}/images', [ProductImageController::class, 'store'])->name('images.store');
-                Route::delete('/images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
                 Route::get('/{product}/variants', [ProductVariantController::class, 'index'])->name('variants.index');
                 Route::post('/{product}/variants', [ProductVariantController::class, 'store'])->name('variants.store');
             });
         });
     });
+
+
+use App\Http\Controllers\Seller\ProductImageController;
+
+Route::middleware(['auth', 'role:seller'])
+    ->prefix('seller')
+    ->name('seller.')
+    ->group(function () {
+
+        // Show product images page (GET)
+        Route::get(
+            'products/{product}/images',
+            [ProductImageController::class, 'index']
+        )->name('products.images.index');
+
+        // Upload product image (POST)
+        Route::post(
+            'products/{product}/images',
+            [ProductImageController::class, 'store']
+        )->name('products.images.store');
+
+        // Delete product image (DELETE)
+        Route::delete(
+            'product-images/{image}',
+            [ProductImageController::class, 'destroy']
+        )->name('products.images.destroy');
+    });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -167,10 +193,21 @@ Route::middleware(['auth', 'role:seller'])
 
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Seller\SellerOnboardingController;
+use App\Http\Controllers\NotificationController;
+
+
+use App\Http\Controllers\WishlistController;
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
-
+    // Notifications routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::get('/customer', [CustomerDashboard::class, 'index'])->name('customer.dashboard');
+
+    // Wishlist routes
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
+    Route::delete('/wishlist/{wishlist}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
 
     Route::get('/seller/apply', [SellerOnboardingController::class, 'create'])->name('seller.apply');
     Route::post('/seller/apply', [SellerOnboardingController::class, 'store'])->name('seller.apply.store');

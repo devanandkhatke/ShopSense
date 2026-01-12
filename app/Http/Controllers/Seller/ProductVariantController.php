@@ -12,7 +12,8 @@ class ProductVariantController extends Controller
 {
     private function authorizeSeller(Product $product)
     {
-        abort_if($product->seller_id !== auth()->id(), 403);
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+        abort_if($product->seller_id !== $sellerProfileId, 403);
     }
 
     public function index(Product $product)

@@ -10,14 +10,21 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductImageController extends Controller
 {
+
+    public function index(Product $product)
+    {
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+        abort_if($product->seller_id !== $sellerProfileId, 403);
+
+        $product->load('images');
+
+        return view('seller.products.images', compact('product'));
+    }
+
     public function store(Request $request, Product $product)
     {
-        // Ownership check
-        abort_if($product->seller_id !== auth()->id(), 403);
-
-        $request->validate([
-            'image' => 'required|image|max:2048', // 2MB
-        ]);
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+        abort_if($product->seller_id !== $sellerProfileId, 403);
 
         $path = $request->file('image')->store('products', 'public');
 
@@ -35,7 +42,8 @@ class ProductImageController extends Controller
 
     public function destroy(ProductImage $image)
     {
-        abort_if($image->product->seller_id !== auth()->id(), 403);
+        $sellerProfileId = auth()->user()->sellerProfile->id;
+        abort_if($image->product->seller_id !== $sellerProfileId, 403);
 
         \Storage::disk('public')->delete($image->path);
         $image->delete();
